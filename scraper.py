@@ -80,10 +80,6 @@ class LinkedIn:
             self.number_of_jobs = to_number
             self.number_of_pages = int(math.ceil(to_number/25))
 
-
-
-
-
     @staticmethod
     def find_elems(index):
             try:
@@ -110,11 +106,12 @@ class LinkedIn:
                 location = "Unknown"
             try:
                 link = driver.find_elements(
-                                By.CLASS_NAME, 'base-card__full-link')[index].get_attribute('href')
-            except:
+                                By.CLASS_NAME, 'base-card__full-link')[index].get_attribute('href')       
+        except:
                 link = "Unknown"
             try:
                 listing_date = driver.find_elements(By.CLASS_NAME, "job-search-card__listdate")[index].text
+            
             except:
                 listing_date = "Unknown"
                 
@@ -123,7 +120,7 @@ class LinkedIn:
     def fetch_datas(self):
         datas = []
         """ 
-        Since there are 25 jobs per page, we check the status of the remaining number of jobs.
+        There are 25 jobs per page, we check the status of the remaining number of jobs.
         """
         if self.number_of_jobs > 25:
             for i in range(25):  
