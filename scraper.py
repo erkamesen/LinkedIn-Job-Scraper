@@ -1,23 +1,36 @@
 from selenium import webdriver
-from selenium.webdriver.firefox.service import Service # selenium.webdriver.chrome.service
+# selenium.webdriver.chrome.service
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 import pandas as pd
-import csv, json, math, os, time
+import csv
+import json
+import math
+import os
+import time
 
 """ SELENIUM """
 
 # Version: 4.5.0
-# pip3 install selenium==4.5.0 
+# pip3 install selenium==4.5.0
 # &
 # pip3 install -r requirements.txt
 
+if not webdriver.__version__ == "4.5.0":
+    raise Exception("pip install selenium==4.5.0 ")
 
 
 """ CREATE DRIVER INSTANCE """
 # Its Firefox if u use chrome set ChromeOptions for chrome
 
 driver_path = "./geckodriver"  # replace with your browser driver s path
-driver = webdriver.Firefox(options=webdriver.FirefoxOptions(), service=Service(executable_path=driver_path)) # webdriver.Chrome() & webdriver.ChromeOptions()
+options = Options()
+""" options.add_argument('--headless')
+options.add_argument('--disable-gpu') """
+
+driver = webdriver.Firefox(options=options, service=Service(
+    executable_path=driver_path))  # webdriver.Chrome() & webdriver.ChromeOptions()
 
 ###########################
 
@@ -34,24 +47,21 @@ class LinkedIn:
         self.filename = str(round(time.time(), 0)).replace(".0", "")
         self.URL = f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?currentJobId={currentJobId}&f_TPR=r2592000&geoId={geoId}&keywords={job_name}&location={location}&refresh=true&start="
 
-
-
     def run(self):
         self.fetch_numbers()
         time.sleep(2)
         for page in range(self.number_of_jobs):
-            self.open_page(page=page)
+            self.open_page(page=(page+1000))
             time.sleep(5)
             datas = self.fetch_datas()
             self.record_to_csv(data=datas)
-            self.record_to_json(data=datas)
-            time.sleep(1)
+            # self.record_to_json(data=datas)
             self.number_of_jobs -= 25
+            if self.number_of_jobs < 0:
+                break
             print(f"- - - - -\n\
                   Total Pages: {self.number_of_pages}\nCurrent page: {page}\n\
                   Remaining Jobs: {self.number_of_jobs}\nRemaining Pages: {int(self.number_of_pages)-int(page)}\n- - - - -")
-
-
 
     def open_page(self, page):
         """
@@ -59,20 +69,17 @@ class LinkedIn:
         """
         driver.get(f"{self.URL}{page}")
 
-        
-
     def fetch_numbers(self):
         """
         If number_of_jobs is given as a parameter, it returns the page number accordingly.
         Else it goes to the original url and gets the job count there and returns.
         """
+        driver.maximize_window()
         if self.number_of_jobs:
-            self.number_of_pages = int(math.ceil(to_number/25))
+            self.number_of_pages = int(math.ceil(self.number_of_jobs/25))
         else:
-            driver.maximize_window()
+
             orj_URL = f"https://www.linkedin.com/jobs/search/?currentJobId={self.currentJobId}&f_TPR=r2592000&geoId={self.geoId}&keywords={self.job_name}&location={self.location}&refresh=true"
-            print(orj_URL)
-            time.sleep(2)
             driver.get(orj_URL)
             number_of_jobs = driver.find_element(
                 By.CLASS_NAME, "results-context-header__job-count").text.replace("+", "").replace(",", "")
@@ -82,64 +89,64 @@ class LinkedIn:
 
     @staticmethod
     def find_elems(index):
-            try:
-                company = driver.find_elements(
-                                    By.CLASS_NAME, 'base-search-card__subtitle')[index].text
-            except:
-                company = "Unknown"
-            try:
-                company_url = driver.find_elements(By.CLASS_NAME, "hidden-nested-link").get_attribute('href')
-            except:
-                company_url = "Unknown"
-            try:
-                title = driver.find_elements(
-                                    By.CLASS_NAME, 'base-search-card__title')[index].text
-            except:
-                title = "Unknown"
-            try:
-                benefit = driver.find_elements(By.CLASS_NAME, "result-benefits__text")[index].text
-            except:
-                benefit = "Unkown"
-            try:
-                location = driver.find_elements(By.CLASS_NAME, "job-search-card__location")[index].text
-            except:
-                location = "Unknown"
-            try:
-                link = driver.find_elements(
-                                By.CLASS_NAME, 'base-card__full-link')[index].get_attribute('href')       
-        except:
-                link = "Unknown"
-            try:
-                listing_date = driver.find_elements(By.CLASS_NAME, "job-search-card__listdate")[index].text
-            
-            except:
-                listing_date = "Unknown"
-                
-            return [company, title, company_url, location, benefit, link, listing_date]
+        try:
+            company = driver.find_elements(
+                By.CLASS_NAME, 'base-search-card__subtitle')[index].text
+        except IndexError:
+            company = "Unknown"
+        try:
+            company_url = driver.find_elements(
+                By.CLASS_NAME, "hidden-nested-link")[index].get_attribute('href')
+        except IndexError:
+            company_url = "Unknown"
+        try:
+            title = driver.find_elements(
+                By.CLASS_NAME, 'base-search-card__title')[index].text
+        except IndexError:
+            title = "Unknown"
+        try:
+            benefit = driver.find_elements(
+                By.CLASS_NAME, "result-benefits__text")[index].text
+        except IndexError:
+            benefit = "Unkown"
+        try:
+            location = driver.find_elements(
+                By.CLASS_NAME, "job-search-card__location")[index].text
+        except IndexError:
+            location = "Unknown"
+        try:
+            link = driver.find_elements(
+                By.CLASS_NAME, 'base-card__full-link')[index].get_attribute('href')
+        except IndexError:
+            link = "Unknown"
+        try:
+            listing_date = driver.find_elements(
+                By.CLASS_NAME, "job-search-card__listdate")[index].text
+        except IndexError:
+            listing_date = "Unknown"
+
+        return [company, title, company_url, location, benefit, link, listing_date]
 
     def fetch_datas(self):
         datas = []
         """ 
-        There are 25 jobs per page, we check the status of the remaining number of jobs.
+        Since there are 25 jobs per page, we check the status of the remaining number of jobs.
         """
         if self.number_of_jobs > 25:
-            for i in range(25):  
+            for i in range(25):
                 datas.append(LinkedIn.find_elems(index=i))
             return datas
         else:
             for i in range(self.number_of_jobs):
 
                 datas.append(LinkedIn.find_elems(index=i))
-            
+
             return datas
 
-
-
-
-    def record_to_json(self, data:list):
-        for count,item in enumerate(data):
+    def record_to_json(self, data: list):
+        for count, item in enumerate(data):
             to_json = {
-                count:item
+                count: item
             }
         if not os.path.exists(f"{self.filename}.json"):
             with open(f"{self.filename}.json", "w") as f:
@@ -148,20 +155,19 @@ class LinkedIn:
             with open(f"{self.filename}.json", "a", encoding="utf-8") as f:
                 for item in data:
                     to_json = {
-                            "COMPANY":item[0],
-                            "TITLE":item[1],
-                            "COMPANY_URL":item[2],
-                            "BENEFIT":item[3],
-                            "LOCATION":item[4],
-                            "URL":item[5],
-                            "LISTING_DATE":item[6]
-                        }
+                        "COMPANY": item[0],
+                        "TITLE": item[1],
+                        "COMPANY_URL": item[2],
+                        "LOCATION": item[3],
+                        "BENEFIT": item[4],
+                        "JOB_URL": item[5],
+                        "LISTING_DATE": item[6]
+                    }
                     json.dump(to_json, f, ensure_ascii=False, indent=None)
 
-
-    def record_to_csv(self, data:list):
-        field_names = ['COMPANY', 'TITLE', 'COMPANY_URL', 'BENEFIT', 'LOCATION',
-               'URL', 'LISTING_DATE']
+    def record_to_csv(self, data: list):
+        field_names = ['COMPANY', 'TITLE', 'COMPANY_URL', 'LOCATION', 'BENEFIT',
+                       'JOB_URL', 'LISTING_DATE']
         if not os.path.exists(f"{self.filename}.csv"):
             with open(f"{self.filename}.csv", 'w') as f:
                 print("CSV FILE CREATED")
@@ -172,4 +178,3 @@ class LinkedIn:
                 writer = csv.writer(f, dialect='excel')
                 for item in data:
                     writer.writerow(item)
-

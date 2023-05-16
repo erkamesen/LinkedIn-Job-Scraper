@@ -1,7 +1,7 @@
 # LinkedIn Job Scraper
 *Selenium based scraper.*
 
-<img src="terminal.png">
+<img src="./assets/terminal.png">
 
 
 ## Install
@@ -25,7 +25,7 @@ pip3 install requirements.txt
 
 ## Usage
 
-<img src="URL.png">
+<img src=".assets/URL.png">
 
 ⚠️⚠️⚠️
 *You can get the **currentJobId** and **geoId** values ​​from the URL after making the search settings.*
