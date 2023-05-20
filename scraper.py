@@ -10,30 +10,24 @@ import math
 import os
 import time
 
+
+
 """ SELENIUM """
 
 # Version: 4.5.0
-# pip3 install selenium==4.5.0
-# &
-# pip3 install -r requirements.txt
-
-if not webdriver.__version__ == "4.5.0":
-    raise Exception("pip install selenium==4.5.0 ")
-
 
 """ CREATE DRIVER INSTANCE """
 # Its Firefox if u use chrome set ChromeOptions for chrome
 
 driver_path = "./geckodriver"  # replace with your browser driver s path
 options = Options()
-""" options.add_argument('--headless')
-options.add_argument('--disable-gpu') """
+options.add_argument('--headless')
+options.add_argument('--disable-gpu')
 
 driver = webdriver.Firefox(options=options, service=Service(
     executable_path=driver_path))  # webdriver.Chrome() & webdriver.ChromeOptions()
 
 ###########################
-
 
 class LinkedIn:
 
@@ -51,18 +45,21 @@ class LinkedIn:
         self.fetch_numbers()
         time.sleep(2)
         for page in range(self.number_of_jobs):
-            self.open_page(page=(page+1000))
-            time.sleep(5)
+            a = time.time()
+            if page > 999:
+                print("SCRAPING IS COMPLETE")
+                break
+            self.open_page(page=(page))
             datas = self.fetch_datas()
             self.record_to_csv(data=datas)
-            # self.record_to_json(data=datas)
             self.number_of_jobs -= 25
             if self.number_of_jobs < 0:
                 break
+            b = time.time()
             print(f"- - - - -\n\
                   Total Pages: {self.number_of_pages}\nCurrent page: {page}\n\
                   Remaining Jobs: {self.number_of_jobs}\nRemaining Pages: {int(self.number_of_pages)-int(page)}\n- - - - -")
-
+            print("Running Time:", round(b-a,1), "second", "\n- - - - -")
     def open_page(self, page):
         """
         It takes the value of the start= query as a parameter.
@@ -86,6 +83,42 @@ class LinkedIn:
             to_number = pd.to_numeric(number_of_jobs)
             self.number_of_jobs = to_number
             self.number_of_pages = int(math.ceil(to_number/25))
+
+    def fetch_datas(self):
+        datas = []
+        """ 
+        There are 25 jobs per page, we check the status of the remaining number of jobs.
+        """
+        if self.number_of_jobs > 25:
+            for i in range(25):
+                ls = LinkedIn.find_elems(index=i)
+                if ls.count("Unknown") == 7:
+                    continue
+                else:
+                    datas.append(LinkedIn.find_elems(index=i))
+            return datas
+        else:
+            for i in range(self.number_of_jobs):
+                ls = LinkedIn.find_elems(index=i)
+                if ls.count("Unknown") == 7:
+                    continue
+                else:
+                    datas.append(LinkedIn.find_elems(index=i))
+            return datas
+
+    def fetch_job_datas(self, job_link):
+
+        driver.get(job_link)
+        driver.find_element(
+            By.XPATH, "/html/body/main/section[1]/div/div/section[1]/div/div/section/button[1]").click()
+        time.sleep(0.1)
+        job_description = driver.find_element(
+            By.CLASS_NAME, "decorated-job-posting__details").text
+        print(job_description)
+        print(driver.find_element(By.CLASS_NAME,
+              "artdeco-entity-image ").get_attribute("src"))
+        print(driver.find_element(By.CLASS_NAME,
+              "description__job-criteria-list").text)
 
     @staticmethod
     def find_elems(index):
@@ -126,22 +159,6 @@ class LinkedIn:
             listing_date = "Unknown"
 
         return [company, title, company_url, location, benefit, link, listing_date]
-
-    def fetch_datas(self):
-        datas = []
-        """ 
-        Since there are 25 jobs per page, we check the status of the remaining number of jobs.
-        """
-        if self.number_of_jobs > 25:
-            for i in range(25):
-                datas.append(LinkedIn.find_elems(index=i))
-            return datas
-        else:
-            for i in range(self.number_of_jobs):
-
-                datas.append(LinkedIn.find_elems(index=i))
-
-            return datas
 
     def record_to_json(self, data: list):
         for count, item in enumerate(data):
