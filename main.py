@@ -1,5 +1,5 @@
-from scraper import LinkedIn
-
+from job_finder import JobFinder
+from job_scraper import JobScraper
 
 """ SELENIUM """
 # Version: 4.5.0
@@ -34,11 +34,12 @@ print("""
  '----------------'  '----------------'  '----------------'  '----------------' 
 """)
 
-URL="https://www.linkedin.com/jobs/view/industrial-engineer-at-rosco-vision-3606315767?refId=%2B1h6eJUnKfsZWRpEFW%2Fl%2Fg%3D%3D&trackingId=B0WMLikSWzSJo4GocQcRvg%3D%3D&position=1&pageNum=0&trk=public_jobs_jserp-result_search-card"
-
-job_scraper = LinkedIn(job_name="industrial engineer", currentJobId=3599704764, geoId=92000000, number_of_jobs=106198, location="Worldwide")
-job_scraper.fetch_job_datas(job_link=URL)
 
 
+""" finder = JobFinder(job_name="industrial engineer", currentJobId=3599704764, geoId=92000000, location="Worldwide")
+finder.run() """
 
+
+scraper = JobScraper("1684778668.csv")
+scraper.run()
 
