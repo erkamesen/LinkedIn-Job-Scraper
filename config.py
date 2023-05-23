@@ -8,7 +8,7 @@ from selenium.webdriver.firefox.options import Options
 def get_driver():
     driver_path = "./geckodriver"  # replace with your browser driver s path
     options = Options()
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
     options.add_argument('--disable-gpu')
 
     return webdriver.Firefox(options=options, service=Service(

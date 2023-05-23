@@ -20,6 +20,7 @@ def get_posting_date(posted_time_ago):
         delta = datetime.timedelta(days=time*30)
         return (todays_date-delta).strftime('%Y-%m-%d')
 
+
 def get_job_locators_text(driver, CSS_SELECTOR):
     try:
         return driver.find_element(
@@ -35,11 +36,6 @@ def get_job_locators_attribute(driver, CSS_SELECTOR, attribute):
     except NoSuchElementException:
         return None
 
-def easy_apply_check(apply_button):
-    if apply_button == "Easy Apply":
-        return True
-    else:
-        return False
 
 def url_not_found_check(driver):
     try:
@@ -49,14 +45,24 @@ def url_not_found_check(driver):
     except:
         return False
 
+
 def url_control(url):
-    if not url.startswith("https://wwww."):
+    if not url.startswith("https://www."):
         return "https://www."+url[11:]
+    else:
+        return url
+
 
 def login_screen_check(driver):
     try:
         driver.find_element(
             By.XPATH, "/html/body/main/section[1]/div/div/section[1]/div/div/section/button[1]").click()
     except NoSuchElementException:
-        time.sleep(6)
         driver.refresh()
+
+
+def set_filename(filename):
+    if filename.endswith(".csv"):
+        return filename
+    else:
+        return filename+".csv"

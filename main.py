@@ -3,9 +3,7 @@ from job_scraper import JobScraper
 
 """ SELENIUM """
 # Version: 4.5.0
-# pip3 install selenium==4.5.0 
-# &
-# pip3 install -r requirements.txt
+
 
 
 
@@ -36,10 +34,9 @@ print("""
 
 
 
-""" finder = JobFinder(job_name="industrial engineer", currentJobId=3599704764, geoId=92000000, location="Worldwide")
-finder.run() """
+""" finder = JobFinder(job_name="Python", currentJobId=3597224841, geoId=102105699, location="Turkey")
+finder.run()  """
 
 
-scraper = JobScraper("1684778668.csv")
-scraper.run()
-
+scraper = JobScraper("1684864932")
+scraper.run() 

@@ -15,6 +15,8 @@ def get_jobs_attribute(driver, index, CLASS_NAME, attribute):
             By.CLASS_NAME, CLASS_NAME)[index].get_attribute(attribute)
     except IndexError:
         return None
+    
+
 
 
 
